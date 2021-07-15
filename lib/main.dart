@@ -6,7 +6,6 @@ import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,6 +17,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: const HomePage(),
     );
   }
@@ -34,11 +34,31 @@ class _HomePageState extends State<HomePage> {
   TextStyle titleStyle = TextStyle(
       color: Color(0xFF5B777B), fontSize: 24, fontWeight: FontWeight.bold);
 
+  double bill = 0;
+  double tip = 0;
+  int person = 1;
+
+  // Prepare the result
+  double tipPerPerson = 0;
+  double totalPerPerson = 0;
+
+  // Create the controller to get the value from input
+  TextEditingController _billController = TextEditingController();
+  TextEditingController _tipController = TextEditingController();
+  TextEditingController _personController = TextEditingController();
+
+  // Create a function to calculate the tip
+  void calculate() {
+    tipPerPerson = bill * tip / person;
+    totalPerPerson = bill * (1 + tip) / person;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFC5E4E7),
       body: SingleChildScrollView(
+        physics: BouncingScrollPhysics(),
         child: Column(
           children: [
             // Header
@@ -46,7 +66,27 @@ class _HomePageState extends State<HomePage> {
               width: double.infinity,
               height: 300,
               child: Center(
-                child: SvgPicture.asset('assets/logo.svg'),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'PROPINAS',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24,
+                          color: Color(0xFF5B777B),
+                          letterSpacing: 4),
+                    ),
+                    Text(
+                      'APP',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24,
+                          color: Color(0xFF5B777B),
+                          letterSpacing: 4),
+                    ),
+                  ],
+                ),
               ),
             ),
             // Body
@@ -62,23 +102,35 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Bills',
+                    'Total a pagar',
                     style: titleStyle,
                   ),
                   SizedBox(
                     height: 15,
                   ),
                   TextField(
+                    controller: _billController,
+                    onEditingComplete: () {
+                      setState(() {
+                        if (_billController.text.isNotEmpty) {
+                          bill = double.parse(_billController.text);
+                        } else {
+                          bill = 0;
+                        }
+                        FocusScope.of(context).unfocus();
+                        calculate();
+                      });
+                    },
                     keyboardType: TextInputType.numberWithOptions(),
                     decoration: InputDecoration(
                         filled: true,
                         fillColor: Color(0xFFF3F8FB),
                         border: InputBorder.none,
-                        hintText: "eg: 100",
+                        hintText: "p. ej.: 100",
                         prefixIcon: Icon(Icons.attach_money_rounded)),
                     textAlign: TextAlign.end,
                     style: TextStyle(
-                        fontSize: 32,
+                        fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF00474B)),
                   ),
@@ -86,7 +138,7 @@ class _HomePageState extends State<HomePage> {
                     height: 35,
                   ),
                   Text(
-                    'Select Tip %',
+                    'Propina %',
                     style: titleStyle,
                   ),
                   SizedBox(
@@ -96,7 +148,12 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Expanded(
                         child: FlatButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            setState(() {
+                              tip = .05;
+                              _tipController.text = '';
+                            });
+                          },
                           height: 60,
                           color: Color(0xFF00474B),
                           child: Text(
@@ -113,7 +170,12 @@ class _HomePageState extends State<HomePage> {
                       ),
                       Expanded(
                         child: FlatButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            setState(() {
+                              tip = .1;
+                              _tipController.text = '';
+                            });
+                          },
                           height: 60,
                           color: Color(0xFF00474B),
                           child: Text(
@@ -134,7 +196,12 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Expanded(
                         child: FlatButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            setState(() {
+                              tip = .15;
+                              _tipController.text = '';
+                            });
+                          },
                           height: 60,
                           color: Color(0xFF00474B),
                           child: Text(
@@ -151,7 +218,12 @@ class _HomePageState extends State<HomePage> {
                       ),
                       Expanded(
                         child: FlatButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            setState(() {
+                              tip = .25;
+                              _tipController.text = '';
+                            });
+                          },
                           height: 60,
                           color: Color(0xFF00474B),
                           child: Text(
@@ -172,7 +244,12 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Expanded(
                         child: FlatButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            setState(() {
+                              tip = .5;
+                              _tipController.text = '';
+                            });
+                          },
                           height: 60,
                           color: Color(0xFF00474B),
                           child: Text(
@@ -189,16 +266,28 @@ class _HomePageState extends State<HomePage> {
                       ),
                       Expanded(
                         child: TextField(
+                            controller: _tipController,
+                            onEditingComplete: () {
+                              setState(() {
+                                if (_tipController.text.isNotEmpty) {
+                                  tip = double.parse(_tipController.text) / 100;
+                                } else {
+                                  tip = 0;
+                                }
+                                FocusScope.of(context).unfocus();
+                                calculate();
+                              });
+                            },
                             keyboardType: TextInputType.numberWithOptions(),
                             decoration: InputDecoration(
                                 filled: true,
                                 fillColor: Color(0xFFF3F8FB),
                                 border: InputBorder.none,
-                                hintText: "Custom",
-                                prefixIcon: Icon(Icons.attach_money_rounded)),
+                                hintText: "Manual",
+                                suffixText: '%'),
                             textAlign: TextAlign.end,
                             style: TextStyle(
-                                fontSize: 24,
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF00474B))),
                       )
@@ -208,23 +297,35 @@ class _HomePageState extends State<HomePage> {
                     height: 15,
                   ),
                   Text(
-                    'Number of people',
+                    'Número de personas',
                     style: titleStyle,
                   ),
                   SizedBox(
                     height: 15,
                   ),
                   TextField(
+                    controller: _personController,
+                    onEditingComplete: () {
+                      setState(() {
+                        if (_personController.text.isNotEmpty) {
+                          person = int.parse(_personController.text);
+                        } else {
+                          person = 1;
+                        }
+                        FocusScope.of(context).unfocus();
+                        calculate();
+                      });
+                    },
                     keyboardType: TextInputType.numberWithOptions(),
                     decoration: InputDecoration(
                         filled: true,
                         fillColor: Color(0xFFF3F8FB),
                         border: InputBorder.none,
-                        hintText: "eg: 5",
+                        hintText: "p. ej.: 5",
                         prefixIcon: Icon(Icons.person)),
                     textAlign: TextAlign.end,
                     style: TextStyle(
-                        fontSize: 32,
+                        fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF00474B)),
                   ),
@@ -249,7 +350,7 @@ class _HomePageState extends State<HomePage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Tip Amount',
+                                  'Propina',
                                   style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 24,
@@ -259,18 +360,21 @@ class _HomePageState extends State<HomePage> {
                                   height: 5,
                                 ),
                                 Text(
-                                  '/ Person',
+                                  '/ persona',
                                   style: TextStyle(
                                       color: Color(0xFF598689), fontSize: 20),
                                 )
                               ],
                             ),
-                            Text(
-                              '\$4.27',
-                              style: TextStyle(
-                                  color: Color(0xFF29C0AD),
-                                  fontSize: 34,
-                                  fontWeight: FontWeight.bold),
+                            FittedBox(
+                              fit: BoxFit.contain,
+                              child: Text(
+                                '\$${tipPerPerson.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                    color: Color(0xFF29C0AD),
+                                    fontSize: 34,
+                                    fontWeight: FontWeight.bold),
+                              ),
                             )
                           ],
                         ),
@@ -294,18 +398,21 @@ class _HomePageState extends State<HomePage> {
                                   height: 5,
                                 ),
                                 Text(
-                                  '/ Person',
+                                  '/ persona',
                                   style: TextStyle(
                                       color: Color(0xFF598689), fontSize: 20),
                                 )
                               ],
                             ),
-                            Text(
-                              '\$4.27',
-                              style: TextStyle(
-                                  color: Color(0xFF29C0AD),
-                                  fontSize: 34,
-                                  fontWeight: FontWeight.bold),
+                            FittedBox(
+                              fit: BoxFit.contain,
+                              child: Text(
+                                '\$${totalPerPerson.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                    color: Color(0xFF29C0AD),
+                                    fontSize: 34,
+                                    fontWeight: FontWeight.bold),
+                              ),
                             )
                           ],
                         ),
@@ -317,9 +424,19 @@ class _HomePageState extends State<HomePage> {
                           child: FlatButton(
                               height: 60,
                               color: Color(0xFF26C2AD),
-                              onPressed: () {},
+                              onPressed: () {
+                                setState(() {
+                                  tip = 0;
+                                  person = 1;
+                                  bill = 0;
+                                  calculate();
+                                  _tipController.clear();
+                                  _billController.clear();
+                                  _personController.clear();
+                                });
+                              },
                               child: Text(
-                                'RESET',
+                                'LIMPIAR',
                                 style: TextStyle(
                                     fontSize: 24,
                                     color: Color(0xFF00494B),
