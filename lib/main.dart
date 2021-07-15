@@ -4,21 +4,20 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:propinas_app/widgets/text_input_field.dart';
+import 'package:propinas_app/widgets/tip_button.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const HomePage(),
+      home: HomePage(),
     );
   }
 }
@@ -31,44 +30,60 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  TextStyle titleStyle = TextStyle(
+  TextStyle titleStyle = const TextStyle(
       color: Color(0xFF5B777B), fontSize: 24, fontWeight: FontWeight.bold);
 
   double bill = 0;
   double tip = 0;
   int person = 1;
+  int currentIndex = -1;
 
   // Prepare the result
   double tipPerPerson = 0;
   double totalPerPerson = 0;
 
   // Create the controller to get the value from input
-  TextEditingController _billController = TextEditingController();
-  TextEditingController _tipController = TextEditingController();
-  TextEditingController _personController = TextEditingController();
+  final TextEditingController _billController = TextEditingController();
+  final TextEditingController _tipController = TextEditingController();
+  final TextEditingController _personController = TextEditingController();
+
+  final ScrollController _scrollController = ScrollController();
 
   // Create a function to calculate the tip
   void calculate() {
+    if (_billController.text.isNotEmpty) {
+      bill = double.parse(_billController.text);
+    } else {
+      bill = 0;
+    }
+    if (_personController.text.isNotEmpty) {
+      person = int.parse(_personController.text);
+    } else {
+      person = 1;
+    }
+    //FocusScope.of(context).unfocus();
     tipPerPerson = bill * tip / person;
     totalPerPerson = bill * (1 + tip) / person;
   }
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: Color(0xFFC5E4E7),
+      backgroundColor: const Color(0xFFC5E4E7),
       body: SingleChildScrollView(
-        physics: BouncingScrollPhysics(),
+        physics: const BouncingScrollPhysics(),
+        controller: _scrollController,
         child: Column(
           children: [
             // Header
-            Container(
+            SizedBox(
               width: double.infinity,
-              height: 300,
+              height: size.height * .3,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+                  children: const [
                     Text(
                       'PROPINAS',
                       style: TextStyle(
@@ -93,7 +108,7 @@ class _HomePageState extends State<HomePage> {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 35),
               width: double.infinity,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius:
                       BorderRadius.vertical(top: Radius.circular(30))),
@@ -105,239 +120,163 @@ class _HomePageState extends State<HomePage> {
                     'Total a pagar',
                     style: titleStyle,
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 15,
                   ),
-                  TextField(
-                    controller: _billController,
-                    onEditingComplete: () {
-                      setState(() {
-                        if (_billController.text.isNotEmpty) {
-                          bill = double.parse(_billController.text);
-                        } else {
-                          bill = 0;
-                        }
-                        FocusScope.of(context).unfocus();
-                        calculate();
-                      });
-                    },
-                    keyboardType: TextInputType.numberWithOptions(),
-                    decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Color(0xFFF3F8FB),
-                        border: InputBorder.none,
-                        hintText: "p. ej.: 100",
-                        prefixIcon: Icon(Icons.attach_money_rounded)),
-                    textAlign: TextAlign.end,
-                    style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF00474B)),
-                  ),
-                  SizedBox(
+                  TextInputField(
+                      controller: _billController,
+                      onChanged: (value) => calculate(),
+                      prefixIcon: Icons.attach_money_rounded,
+                      hintText: "p. ej.: 100"),
+                  const SizedBox(
                     height: 35,
                   ),
                   Text(
                     'Propina %',
                     style: titleStyle,
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 15,
                   ),
                   Row(
                     children: [
-                      Expanded(
-                        child: FlatButton(
+                      TipButton(
+                          active: currentIndex == 0,
+                          text: '5%',
                           onPressed: () {
                             setState(() {
                               tip = .05;
                               _tipController.text = '';
+                              calculate();
+                              currentIndex = 0;
                             });
-                          },
-                          height: 60,
-                          color: Color(0xFF00474B),
-                          child: Text(
-                            '5%',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                      SizedBox(
+                          }),
+                      const SizedBox(
                         width: 10,
                       ),
-                      Expanded(
-                        child: FlatButton(
+                      TipButton(
+                          active: currentIndex == 1,
+                          text: '10%',
                           onPressed: () {
                             setState(() {
                               tip = .1;
                               _tipController.text = '';
+                              calculate();
+                              currentIndex = 1;
                             });
-                          },
-                          height: 60,
-                          color: Color(0xFF00474B),
-                          child: Text(
-                            '10%',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      )
+                          })
                     ],
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 15,
                   ),
                   Row(
                     children: [
-                      Expanded(
-                        child: FlatButton(
+                      TipButton(
+                          active: currentIndex == 2,
+                          text: '15%',
                           onPressed: () {
                             setState(() {
                               tip = .15;
                               _tipController.text = '';
+                              calculate();
+                              currentIndex = 2;
                             });
-                          },
-                          height: 60,
-                          color: Color(0xFF00474B),
-                          child: Text(
-                            '15%',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                      SizedBox(
+                          }),
+                      const SizedBox(
                         width: 10,
                       ),
-                      Expanded(
-                        child: FlatButton(
+                      TipButton(
+                          active: currentIndex == 3,
+                          text: '25%',
                           onPressed: () {
                             setState(() {
                               tip = .25;
                               _tipController.text = '';
+                              calculate();
+                              currentIndex = 3;
                             });
-                          },
-                          height: 60,
-                          color: Color(0xFF00474B),
-                          child: Text(
-                            '25%',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      )
+                          }),
                     ],
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 15,
                   ),
                   Row(
                     children: [
-                      Expanded(
-                        child: FlatButton(
+                      TipButton(
+                          active: currentIndex == 4,
+                          text: '50%',
                           onPressed: () {
                             setState(() {
                               tip = .5;
                               _tipController.text = '';
+                              calculate();
+                              currentIndex = 4;
                             });
-                          },
-                          height: 60,
-                          color: Color(0xFF00474B),
-                          child: Text(
-                            '50%',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                      SizedBox(
+                          }),
+                      const SizedBox(
                         width: 10,
                       ),
                       Expanded(
-                        child: TextField(
+                        child: TextInputField(
                             controller: _tipController,
-                            onEditingComplete: () {
-                              setState(() {
-                                if (_tipController.text.isNotEmpty) {
-                                  tip = double.parse(_tipController.text) / 100;
-                                } else {
-                                  tip = 0;
-                                }
-                                FocusScope.of(context).unfocus();
-                                calculate();
-                              });
+                            onChanged: (value) {
+                              if (_tipController.text.isNotEmpty) {
+                                tip = double.parse(_tipController.text) / 100;
+                                currentIndex = -1;
+                              } else {
+                                tip = 0;
+                              }
+                              calculate();
                             },
-                            keyboardType: TextInputType.numberWithOptions(),
-                            decoration: InputDecoration(
-                                filled: true,
-                                fillColor: Color(0xFFF3F8FB),
-                                border: InputBorder.none,
-                                hintText: "Manual",
-                                suffixText: '%'),
-                            textAlign: TextAlign.end,
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF00474B))),
+                            fontSize: 20,
+                            suffixText: '%',
+                            hintText: "Manual"),
                       )
                     ],
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 15,
                   ),
                   Text(
                     'Número de personas',
                     style: titleStyle,
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 15,
                   ),
-                  TextField(
-                    controller: _personController,
-                    onEditingComplete: () {
-                      setState(() {
-                        if (_personController.text.isNotEmpty) {
-                          person = int.parse(_personController.text);
-                        } else {
-                          person = 1;
-                        }
-                        FocusScope.of(context).unfocus();
-                        calculate();
-                      });
-                    },
-                    keyboardType: TextInputType.numberWithOptions(),
-                    decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Color(0xFFF3F8FB),
-                        border: InputBorder.none,
-                        hintText: "p. ej.: 5",
-                        prefixIcon: Icon(Icons.person)),
-                    textAlign: TextAlign.end,
-                    style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF00474B)),
+                  TextInputField(
+                      controller: _personController,
+                      onChanged: (value) => calculate(),
+                      prefixIcon: Icons.person,
+                      hintText: "p. ej.: 5"),
+                  const SizedBox(
+                    height: 20,
                   ),
                   SizedBox(
-                    height: 30,
+                      width: double.infinity,
+                      child: TextButton(
+                          onPressed: calculate,
+                          style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all(
+                                  const Color(0xFF26C2AD))),
+                          child: const Text(
+                            'CALCULAR',
+                            style: TextStyle(
+                                fontSize: 24,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                          ))),
+                  const SizedBox(
+                    height: 20,
                   ),
                   Container(
-                    padding: EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(24),
                     height: 300,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                        color: Color(0xFF00474B),
+                        color: const Color(0xFF00474B),
                         borderRadius: BorderRadius.circular(18)),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -348,7 +287,7 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
+                              children: const [
                                 Text(
                                   'Propina',
                                   style: TextStyle(
@@ -366,19 +305,21 @@ class _HomePageState extends State<HomePage> {
                                 )
                               ],
                             ),
-                            FittedBox(
-                              fit: BoxFit.contain,
-                              child: Text(
-                                '\$${tipPerPerson.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                    color: Color(0xFF29C0AD),
-                                    fontSize: 34,
-                                    fontWeight: FontWeight.bold),
+                            Expanded(
+                              child: FittedBox(
+                                fit: BoxFit.contain,
+                                child: Text(
+                                  '\$${tipPerPerson.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                      color: Color(0xFF29C0AD),
+                                      fontSize: 34,
+                                      fontWeight: FontWeight.bold),
+                                ),
                               ),
                             )
                           ],
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 20,
                         ),
                         Row(
@@ -386,7 +327,7 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
+                              children: const [
                                 Text(
                                   'Total',
                                   style: TextStyle(
@@ -404,38 +345,44 @@ class _HomePageState extends State<HomePage> {
                                 )
                               ],
                             ),
-                            FittedBox(
-                              fit: BoxFit.contain,
-                              child: Text(
-                                '\$${totalPerPerson.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                    color: Color(0xFF29C0AD),
-                                    fontSize: 34,
-                                    fontWeight: FontWeight.bold),
+                            Expanded(
+                              child: FittedBox(
+                                fit: BoxFit.contain,
+                                child: Text(
+                                  '\$${totalPerPerson.toStringAsFixed(2)}',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                      color: Color(0xFF29C0AD),
+                                      fontSize: 34,
+                                      fontWeight: FontWeight.bold),
+                                ),
                               ),
                             )
                           ],
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 20,
                         ),
-                        Container(
+                        SizedBox(
                           width: double.infinity,
                           child: FlatButton(
                               height: 60,
-                              color: Color(0xFF26C2AD),
+                              color: const Color(0xFF26C2AD),
                               onPressed: () {
                                 setState(() {
                                   tip = 0;
                                   person = 1;
                                   bill = 0;
+                                  currentIndex = -1;
                                   calculate();
                                   _tipController.clear();
                                   _billController.clear();
                                   _personController.clear();
+                                  FocusScope.of(context).unfocus();
+                                  animateScroll(0);
                                 });
                               },
-                              child: Text(
+                              child: const Text(
                                 'LIMPIAR',
                                 style: TextStyle(
                                     fontSize: 24,
@@ -453,5 +400,10 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  void animateScroll(double offset) {
+    _scrollController.animateTo(offset,
+        duration: const Duration(milliseconds: 500), curve: Curves.ease);
   }
 }
